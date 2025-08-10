@@ -1,7 +1,23 @@
 ---
-name: Build bird3
+name: Build and publish container image
+
 on:
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      app_name:
+        description: Application name
+        required: true
+        type: string
+
+      app_version:
+        description: Application version
+        required: true
+        type: string
+
+      image_version:
+        description: Image version
+        required: true
+        type: string
 
 jobs:
   build-and-push-image:
@@ -13,10 +29,6 @@ jobs:
       attestations: write
       id-token: write
 
-    env:
-      REGISTRY: ghcr.io
-      IMAGE_NAME: frederic-arr/bird3
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -24,7 +36,7 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -32,13 +44,21 @@ jobs:
         id: meta
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: |
+            ghcr.io/${{ github.repository_owner }}/${{ inputs.app_name }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 #v3.11.1
 
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          context: ./bird3
+          context: ./${{ inputs.app_name }}
+          build-args: |
+            APP_VERSION=${{ inputs.app_version }}
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ github.repository_owner }}/${{ inputs.app_name }}:latest
+            ${{ github.repository_owner }}/${{ inputs.app_name }}:${{ inputs.app_version }}

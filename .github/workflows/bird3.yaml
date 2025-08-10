@@ -1,0 +1,47 @@
+---
+name: Check and update bird3
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-and-update-bird3:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:12-slim
+    steps:
+      - name: Install necessary packages
+        run: |
+          apt-get update && apt-get -y install apt-transport-https ca-certificates curl jq
+
+      - name: Add CZ.NIC Labs Packaging GPG key
+        run: |
+          curl -o /usr/share/keyrings/cznic-labs-pkg.gpg https://pkg.labs.nic.cz/gpg
+
+      - name: Setup the bird3 repository
+        run: |
+          echo "deb [signed-by=/usr/share/keyrings/cznic-labs-pkg.gpg] https://pkg.labs.nic.cz/bird3 trixie main" | tee /etc/apt/sources.list.d/cznic-labs-bird3.list
+
+      - name: UPdate apt bacpakge index with bird3 repo enabled
+        run: |
+          apt-get update
+
+      - name: Get latest version from APT
+        id: apt
+        run: |
+          APP_VERSION=$(apt-cache policy "bird3" | grep Candidate | awk '{print $2}')
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+
+          IMAGE_VERSION=$(echo "$APP_VERSION" | cut -d'-' -f1)
+          echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Check if image version exists in GHCR
+        id: docker
+        run: |
+          docker help
