@@ -61,4 +61,4 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           tags: |
             ${{ github.repository_owner }}/${{ inputs.app_name }}:latest
-            ${{ github.repository_owner }}/${{ inputs.app_name }}:${{ inputs.app_version }}
+            ${{ github.repository_owner }}/${{ inputs.app_name }}:${{ inputs.image_version }}
