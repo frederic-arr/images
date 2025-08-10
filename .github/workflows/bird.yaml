@@ -75,6 +75,6 @@ jobs:
       - get-apt-version
       - check-registry
     with:
-      app_name: bird3
+      app_name: bird
       app_version: ${{ needs.get-apt-version.outputs.app_version }}
       image_version: ${{ needs.get-apt-version.outputs.image_version }}
