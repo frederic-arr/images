@@ -17,8 +17,10 @@ RUN useradd -u 1001 app \
   && apt -y install bird3=${APP_VERSION} \
   && apt -y upgrade \
   && apt -y clean \
-  && apt -y autoremove
+  && apt -y autoremove \
+  && mkdir /app /app/run /app/config /app/log \
+  && chown -R app:app /app
 
 WORKDIR /app
 USER app
-ENTRYPOINT ["bird"]
+ENTRYPOINT [ "bird",  "-P", "/app/run/bird.pid", "-s", "/app/run/bird.ctl", "-c", "/app/config/bird.conf", "-f" ]
