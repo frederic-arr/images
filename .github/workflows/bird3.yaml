@@ -60,6 +60,11 @@ jobs:
     if: needs.check-registry.outputs.should_update == 'true'
     uses: ./.github/workflows/build-and-publish.yaml
     secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
     needs:
       - get-apt-version
       - check-registry
