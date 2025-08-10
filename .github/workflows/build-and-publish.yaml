@@ -25,7 +25,6 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
       attestations: write
       id-token: write
 
@@ -45,7 +44,11 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/${{ inputs.app_name }}
+            ${{ github.repository_owner }}/${{ inputs.app_name }}
+          labels: |
+            org.opencontainers.image.url="https://github.com/${{ github.repository }}"
+            org.opencontainers.image.documentation="https://github.com/${{ github.repository }}/tree/${{ github.sha }}/${{ inputs.app_name }}/README.md"
+            org.opencontainers.image.source="https://github.com/${{ github.repository }}/tree/${{ github.sha }}/${{ inputs.app_name }}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 #v3.11.1
@@ -59,6 +62,14 @@ jobs:
             APP_VERSION=${{ inputs.app_version }}
           push: true
           labels: ${{ steps.meta.outputs.labels }}
+
           tags: |
-            ${{ github.repository_owner }}/${{ inputs.app_name }}:latest
-            ${{ github.repository_owner }}/${{ inputs.app_name }}:${{ inputs.image_version }}
+            ${{ vars.DOCKER_USERNAME }}/${{ inputs.app_name }}:latest
+            ${{ vars.DOCKER_USERNAME }}/${{ inputs.app_name }}:${{ inputs.image_version }}
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
+        with:
+          subject-name: index.docker.io/${{ vars.DOCKER_USERNAME }}/${{ inputs.app_name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true

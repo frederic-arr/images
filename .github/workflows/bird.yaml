@@ -1,5 +1,5 @@
 ---
-name: Check and update bird3
+name: Check and update bird
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ jobs:
   get-apt-version:
     runs-on: ubuntu-latest
     container:
-      image: debian:12-slim
+      image: debian:12.11-slim@sha256:2424c1850714a4d94666ec928e24d86de958646737b1d113f5b2207be44d37d8
     outputs:
       app_version: ${{ steps.apt.outputs.app_version }}
       image_version: ${{ steps.apt.outputs.image_version }}
@@ -23,11 +23,11 @@ jobs:
         run: |
           curl -o /usr/share/keyrings/cznic-labs-pkg.gpg https://pkg.labs.nic.cz/gpg
 
-      - name: Setup the bird3 repository
+      - name: Setup the bird repository
         run: |
-          echo "deb [signed-by=/usr/share/keyrings/cznic-labs-pkg.gpg] https://pkg.labs.nic.cz/bird3 trixie main" | tee /etc/apt/sources.list.d/cznic-labs-bird3.list
+          echo "deb [signed-by=/usr/share/keyrings/cznic-labs-pkg.gpg] https://pkg.labs.nic.cz/bird3 bookworm main" | tee /etc/apt/sources.list.d/cznic-labs-bird3.list
 
-      - name: UPdate apt bacpakge index with bird3 repo enabled
+      - name: UPdate apt bacpakge index with bird repo enabled
         run: |
           apt-get update
 
@@ -59,7 +59,7 @@ jobs:
         continue-on-error: true
         run: |
           IMAGE_VERSION=${{ needs.get-apt-version.outputs.image_version }}
-          IMAGE="${{ vars.DOCKER_USERNAME }}/bird3:${IMAGE_VERSION}"
+          IMAGE="${{ vars.DOCKER_USERNAME }}/bird:${IMAGE_VERSION}"
           docker manifest inspect "$IMAGE"
 
   build-and-publish-image:
@@ -69,7 +69,6 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
-      packages: write
       attestations: write
       id-token: write
     needs:
