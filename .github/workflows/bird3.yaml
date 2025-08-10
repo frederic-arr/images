@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  check-and-update-bird3:
+  get-apt-version:
     runs-on: ubuntu-latest
     container:
       image: debian:12-slim
@@ -35,6 +35,10 @@ jobs:
           IMAGE_VERSION=$(echo "$APP_VERSION" | cut -d'-' -f1)
           echo "image_version=$IMAGE_VERSION" >> $GITHUB_OUTPUT
 
+  check-and-update-bird3:
+    runs-on: ubuntu-latest
+    needs: get-apt-version
+    steps:
       - name: Log in to the Container registry
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
