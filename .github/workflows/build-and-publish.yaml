@@ -35,9 +35,8 @@ jobs:
       - name: Log in to the Container registry
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -62,7 +61,6 @@ jobs:
             APP_VERSION=${{ inputs.app_version }}
           push: true
           labels: ${{ steps.meta.outputs.labels }}
-
           tags: |
             ${{ vars.DOCKER_USERNAME }}/${{ inputs.app_name }}:latest
             ${{ vars.DOCKER_USERNAME }}/${{ inputs.app_name }}:${{ inputs.image_version }}
